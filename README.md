@@ -2,6 +2,8 @@
     A simple, and efficient, CLI program to find a Linux command with chat GPT.
 </h4>
 
+![Made with VHS](https://vhs.charm.sh/vhs-2KmNYiklN8x8aaOEeM7okr.gif)
+
 # GPT-CLI
 
 ## Setup
