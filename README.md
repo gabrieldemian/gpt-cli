@@ -20,8 +20,8 @@ Arguments:
   <PROMPT>  Your prompt
 
 Options:
-  -t, --tokens <TOKENS>  The max number of tokens generated per message
-  -m, --model <MODEL>    The model to be used [default: text-davinci-003]
+  -t, --tokens           The max number of tokens generated per message
+  -m, --model            The model to be used [default: text-davinci-003]
   -h, --help             Print help
   -V, --version          Print version
 </pre>
