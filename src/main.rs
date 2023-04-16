@@ -22,9 +22,9 @@ fn main() -> Result<(), &'static str> {
         model: args.model.clone(),
         max_tokens: Some(args.tokens.unwrap_or(200)),
         prompt: "Linux command to ".to_owned() + args.prompt.clone().as_str(),
-        top_p: Some(1.0),
+        temperature: Some(0.0),
         stream: Some(false),
-        temperature: None,
+        top_p: None,
     })
     .unwrap();
 
