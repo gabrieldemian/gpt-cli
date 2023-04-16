@@ -30,13 +30,18 @@ pub struct Choice {
     pub message: Option<Message>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CompletionBody {
     pub model: String,
     pub prompt: String,
-    pub max_tokens: i32,
-    pub temperature: f64,
-    pub stream: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_tokens: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub temperature: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub top_p: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stream: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
