@@ -15,8 +15,6 @@ fn main() -> Result<(), &'static str> {
     }
     let (_, key) = key.unwrap();
 
-    let prompt = "write a short poem about how God conquered death".to_string();
-
     let client = reqwest::blocking::Client::new();
     let mut headers = HeaderMap::new();
 
@@ -24,7 +22,7 @@ fn main() -> Result<(), &'static str> {
         // model: "gpt-3.5-turbo".to_string(),
         model: args.model.clone(),
         max_tokens: args.tokens,
-        prompt,
+        prompt: args.prompt.clone(),
         top_p: Some(1.0),
         stream: Some(false),
         temperature: None,

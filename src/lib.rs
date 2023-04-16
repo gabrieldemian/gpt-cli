@@ -59,6 +59,10 @@ pub struct CompletionResp {
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
+    /// Your prompt
+    #[arg()]
+    pub prompt: String,
+
     /// The max number of tokens generated per message
     #[arg(short, long)]
     pub tokens: Option<i32>,
