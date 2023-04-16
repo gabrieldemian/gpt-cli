@@ -1,28 +1,30 @@
 use clap::Parser;
+use cli_clipboard;
+use dialoguer::{theme::ColorfulTheme, Select};
 use dotenv::dotenv;
 use gpt_cli::*;
 use log::info;
 use reqwest::header::{HeaderMap, CONTENT_TYPE};
 
 fn main() -> Result<(), &'static str> {
-    let args = Args::parse();
-    pretty_env_logger::init();
     dotenv().ok();
+    pretty_env_logger::init();
+    let args = Args::parse();
+    let key = std::env::var("OPENAI_API_KEY");
 
-    let key = std::env::vars().find(|(k, _)| k == &"OPENAI_API_KEY".to_string());
-    if key.is_none() {
-        return Err("You need to paste a key OPENAI_API_KEY on a .env file");
+    if key.is_err() {
+        return Err("❗OpenAI key not found. You need to export OPEN_API_KEY on .bashrc or .zshrc");
     }
-    let (_, key) = key.unwrap();
+
+    let key = key.unwrap();
 
     let client = reqwest::blocking::Client::new();
     let mut headers = HeaderMap::new();
 
     let body = serde_json::to_string(&CompletionBody {
-        // model: "gpt-3.5-turbo".to_string(),
         model: args.model.clone(),
-        max_tokens: args.tokens,
-        prompt: args.prompt.clone(),
+        max_tokens: Some(args.tokens.unwrap_or(200)),
+        prompt: "Linux command to ".to_owned() + args.prompt.clone().as_str(),
         top_p: Some(1.0),
         stream: Some(false),
         temperature: None,
@@ -42,9 +44,32 @@ fn main() -> Result<(), &'static str> {
         .unwrap();
 
     info!("status {}", r.status());
+
     let body: CompletionResp = serde_json::from_str(r.text().unwrap().as_str()).unwrap();
+
     info!("body: {:#?}", body);
-    println!("{:#?}", body.choices[0].text.clone().unwrap());
+
+    let command = body.choices[0].text.clone().unwrap();
+    let command = command.trim();
+
+    println!("\nyour command is:");
+    println!("{}", command);
+    print!("\n");
+
+    let selections = &["Copy to clipboard", "Cancel"];
+    let selection = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("What now?")
+        .default(0)
+        .items(&selections[..])
+        .interact()
+        .unwrap();
+
+    match selection {
+        0 => {
+            cli_clipboard::set_contents(command.to_owned()).unwrap();
+        }
+        _ => {}
+    };
 
     Ok(())
 }

@@ -55,7 +55,7 @@ pub struct CompletionResp {
     pub usage: Usage,
 }
 
-/// A simple, and efficient, CLI program to communicate with chat GPT.
+/// A simple, and efficient, CLI program to find a Linux command with chat GPT.
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
@@ -70,4 +70,19 @@ pub struct Args {
     /// The model to be used
     #[arg(short, long, default_value = "text-davinci-003")]
     pub model: String,
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn can_find_command_in_string() {
+        let teste = "The Linux command to synchronize two folders using `rsync` is:\n\n```\nrsync -avh /path/to/source/folder/ /path/to/destination/folder/\n```\n\nNote that this command will copy all files and folders from the source folder to the destination folder, and any files or folders that exist in the destination folder but not in the source folder will be deleted. If you want to sync two folders over the network, you'll need to specify the hostname and username for the remote machine.\ncode of the linux command to syncronize two folders\n\nHere's the code for the Linux command to synchronize two folders using `rsync`:\n\n```\nrsync -avh /path/to/source/folder/ /path/to/destination/folder/\n```\n\nThis command will copy all files and folders from the source folder to the destination folder, and any files or folders that exist in the destination folder but not in the source folder will be deleted. The `-a` option specifies that `rsync` should preserve all file attributes, including permissions, timestamps, and ownership, and the `-v` option enables verbose output so you can see what `rsync` is doing. The `-h` option is optional, and it stands for \"human-readable.\" If you include this option, `rsync` will display file sizes in a more easily readable format.";
+
+        let l = teste.lines().position(|x| x == "```");
+        let command = teste.lines().nth(l.unwrap() + 1).unwrap().trim();
+        assert_eq!(
+            command,
+            "rsync -avh /path/to/source/folder/ /path/to/destination/folder/"
+        );
+    }
 }

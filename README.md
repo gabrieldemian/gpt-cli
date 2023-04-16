@@ -1,15 +1,17 @@
 <h4 align="center">
-   A CLI program to talk with Chat GPT, written in Rust.
+    A simple, and efficient, CLI program to find a Linux command with chat GPT.
 </h4>
 
 # GPT-CLI
 
 ## Setup
 
+You need to have the var `OPENAI_API_KEY` exported from your environment. I recommend exporting it on `.zshrc` for zsh shells (or .bashrc for bash). Or you can also create a local .env at the root of the project.
+
 > Create a .env file containing your key at the root of the project
 
    ```sh
-   echo "OPENAI_API_KEY=<your key>" > .env
+   echo "export OPENAI_API_KEY=<your key>" > .env
    ```
 
 ## Usage
@@ -29,5 +31,5 @@ Options:
 ## Example
 
    ```sh
-   gpt-cli Linux: command to syncronize two folders -t 100
+   gpt-cli "syncronize two folders" -t 100
    ```
