@@ -35,18 +35,18 @@ fn main() -> Result<(), &'static str> {
 
     info!("args: {:#?}", args);
 
-    // let r = client
-    //     .post("https://api.openai.com/v1/completions")
-    //     .headers(headers)
-    //     .body(body)
-    //     .bearer_auth(key)
-    //     .send()
-    //     .unwrap();
-    //
-    // info!("status {}", r.status());
-    // let body: CompletionResp = serde_json::from_str(r.text().unwrap().as_str()).unwrap();
-    // info!("body: {:#?}", body);
-    // println!("{}", body.choices[0].text.clone().unwrap());
+    let r = client
+        .post("https://api.openai.com/v1/completions")
+        .headers(headers)
+        .body(body)
+        .bearer_auth(key)
+        .send()
+        .unwrap();
+
+    info!("status {}", r.status());
+    let body: CompletionResp = serde_json::from_str(r.text().unwrap().as_str()).unwrap();
+    info!("body: {:#?}", body);
+    println!("{:#?}", body.choices[0].text.clone().unwrap());
 
     Ok(())
 }
