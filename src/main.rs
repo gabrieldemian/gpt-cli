@@ -10,13 +10,10 @@ fn main() -> Result<(), &'static str> {
     dotenv().ok();
     pretty_env_logger::init();
     let args = Args::parse();
-    let key = std::env::var("OPENAI_API_KEY");
 
-    if key.is_err() {
-        return Err("❗OpenAI key not found. You need to export OPEN_API_KEY on .bashrc or .zshrc");
-    }
-
-    let key = key.unwrap();
+    let key = std::env::var("OPENAI_API_KEY").map_err(|_| {
+        "❗OpenAI key not found. You need to export OPEN_API_KEY on .bashrc or .zshrc"
+    })?;
 
     let client = reqwest::blocking::Client::new();
     let mut headers = HeaderMap::new();
