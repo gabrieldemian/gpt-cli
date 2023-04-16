@@ -1,3 +1,4 @@
+use clap::Parser;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -52,4 +53,17 @@ pub struct CompletionResp {
     pub model: Option<String>,
     pub choices: Vec<Choice>,
     pub usage: Usage,
+}
+
+/// A simple, and efficient, CLI program to communicate with chat GPT.
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+pub struct Args {
+    /// The max number of tokens generated per message
+    #[arg(short, long)]
+    pub tokens: Option<i32>,
+
+    /// The model to be used
+    #[arg(short, long, default_value = "text-davinci-003")]
+    pub model: String,
 }

@@ -1,9 +1,11 @@
+use clap::Parser;
 use dotenv::dotenv;
 use gpt_cli::*;
 use log::info;
 use reqwest::header::{HeaderMap, CONTENT_TYPE};
 
 fn main() -> Result<(), &'static str> {
+    let args = Args::parse();
     pretty_env_logger::init();
     dotenv().ok();
 
@@ -20,8 +22,8 @@ fn main() -> Result<(), &'static str> {
 
     let body = serde_json::to_string(&CompletionBody {
         // model: "gpt-3.5-turbo".to_string(),
-        model: "text-davinci-003".to_string(),
-        max_tokens: Some(5),
+        model: args.model.clone(),
+        max_tokens: args.tokens,
         prompt,
         top_p: Some(1.0),
         stream: Some(false),
@@ -31,21 +33,20 @@ fn main() -> Result<(), &'static str> {
 
     headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
 
-    let r = client
-        .post("https://api.openai.com/v1/completions")
-        .headers(headers)
-        .body(body)
-        .bearer_auth(key)
-        .send()
-        .unwrap();
+    info!("args: {:#?}", args);
 
-    info!("status {}", r.status());
-
-    let body: CompletionResp = serde_json::from_str(r.text().unwrap().as_str()).unwrap();
-
-    info!("body: {:#?}", body);
-
-    println!("{}", body.choices[0].text.clone().unwrap());
+    // let r = client
+    //     .post("https://api.openai.com/v1/completions")
+    //     .headers(headers)
+    //     .body(body)
+    //     .bearer_auth(key)
+    //     .send()
+    //     .unwrap();
+    //
+    // info!("status {}", r.status());
+    // let body: CompletionResp = serde_json::from_str(r.text().unwrap().as_str()).unwrap();
+    // info!("body: {:#?}", body);
+    // println!("{}", body.choices[0].text.clone().unwrap());
 
     Ok(())
 }
