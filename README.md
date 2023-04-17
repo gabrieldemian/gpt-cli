@@ -17,7 +17,7 @@ You need to have the var `OPENAI_API_KEY` exported from your environment. I reco
    ```
 
 ## Usage
-<pre>
+```
 gpt-cli [OPTIONS] <PROMPT>
 
 Arguments:
@@ -28,7 +28,6 @@ Options:
   -m, --model            The model to be used [default: text-davinci-003]
   -h, --help             Print help
   -V, --version          Print version
-</pre>
 
 ## Example
 
