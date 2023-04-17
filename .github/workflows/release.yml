@@ -24,8 +24,8 @@ jobs:
     strategy:
       matrix:
         include:
-          # - target: aarch64-unknown-linux-gnu
-          #   os: ubuntu-latest
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
           - target: aarch64-apple-darwin
             os: macos-latest
           - target: x86_64-unknown-linux-gnu
@@ -37,6 +37,7 @@ jobs:
             os: macos-latest
     runs-on: ${{ matrix.os }}
     steps:
+      - run: sudo dpkg --add-architecture i386 && sudo apt-get update && sudo apt-get install libssl-dev:i386 clang
       - uses: actions/checkout@v3
       - uses: taiki-e/upload-rust-binary-action@v1
         with:
