@@ -47,161 +47,79 @@ jobs:
           os: windows-2022
           rust: nightly
           target: i686-pc-windows-msvc
-
+            
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-        with:
-          submodules: true
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Install ${{ matrix.rust }} toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ matrix.rust }}
-          target: ${{ matrix.target }}
-          override: true
+    - name: Install packages (Ubuntu)
+      if: matrix.os == 'ubuntu-22.04'
+      run: |
+        ci/ubuntu-install-packages
+    - name: Install packages (macOS)
+      if: matrix.os == 'macos-12'
+      run: |
+        ci/macos-install-packages
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ matrix.rust }}
+        target: ${{ matrix.target }}
 
-      - name: Build release binary
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: ${{ matrix.cross }}
-          command: build
-          args: --release --locked --target ${{ matrix.target }}
+    - name: Use Cross
+      shell: bash
+      run: |
+        cargo install cross
+        echo "CARGO=cross" >> $GITHUB_ENV
+        echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
+        echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
+    - name: Show command used for Cargo
+      run: |
+        echo "cargo command is: ${{ env.CARGO }}"
+        echo "target flag is: ${{ env.TARGET_FLAGS }}"
+        echo "target dir is: ${{ env.TARGET_DIR }}"
+    - name: Build release binary
+      run: ${{ env.CARGO }} build --verbose --release --features pcre2 ${{ env.TARGET_FLAGS }}
 
-      - name: Strip release binary (linux and macos)
-        if: matrix.build == 'x86_64-linux' || matrix.build == 'x86_64-macos'
-        run: strip "target/${{ matrix.target }}/release/$BIN_NAME"
+    - name: Strip release binary (linux and macos)
+      if: matrix.build == 'linux' || matrix.build == 'macos'
+      run: strip "target/${{ matrix.target }}/release/rg"
 
-      - name: Strip release binary (arm)
-        if: matrix.build == 'aarch64-linux'
-        run: |
-          docker run --rm -v \
-            "$PWD/target:/target:Z" \
-            rustembedded/cross:${{ matrix.target }} \
-            aarch64-linux-gnu-strip \
-            /target/${{ matrix.target }}/release/$BIN_NAME
-
-      - name: Build archive
-        shell: bash
-        run: |
-          mkdir dist
-          if [ "${{ matrix.os }}" = "windows-2019" ]; then
-            cp "target/${{ matrix.target }}/release/$BIN_NAME.exe" "dist/"
-          else
-            cp "target/${{ matrix.target }}/release/$BIN_NAME" "dist/"
-          fi
-
-      - uses: actions/upload-artifact@v2.2.4
-        with:
-          name: bins-${{ matrix.build }}
-          path: dist
-
-  publish:
-    name: Publish
-    needs: [dist]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-        with:
-          submodules: false
-
-      - uses: actions/download-artifact@v2
-        # with:
-        #   path: dist
-      # - run: ls -al ./dist
-      - run: ls -al bins-*
-
-      - name: Calculate tag name
-        run: |
-          name=dev
-          if [[ $GITHUB_REF == refs/tags/v* ]]; then
-            name=${GITHUB_REF:10}
-          fi
-          echo ::set-output name=val::$name
-          echo TAG=$name >> $GITHUB_ENV
-        id: tagname
-
-      - name: Build archive
-        shell: bash
-        run: |
-          set -ex
-
-          rm -rf tmp
-          mkdir tmp
-          mkdir dist
-
-          for dir in bins-* ; do
-              platform=${dir#"bins-"}
-              unset exe
-              if [[ $platform =~ "windows" ]]; then
-                  exe=".exe"
-              fi
-              pkgname=$PROJECT_NAME-$TAG-$platform
-              mkdir tmp/$pkgname
-              # cp LICENSE README.md tmp/$pkgname
-              mv bins-$platform/$BIN_NAME$exe tmp/$pkgname
-              chmod +x tmp/$pkgname/$BIN_NAME$exe
-
-              if [ "$exe" = "" ]; then
-                  tar cJf dist/$pkgname.tar.xz -C tmp $pkgname
-              else
-                  (cd tmp && 7z a -r ../dist/$pkgname.zip $pkgname)
-              fi
-          done
-
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/*
-          file_glob: true
-          tag: ${{ steps.tagname.outputs.val }}
-          overwrite: true
-
-      - name: Extract version
-        id: extract-version
-        run: |
-          printf "::set-output name=%s::%s\n" tag-name "${GITHUB_REF#refs/tags/}"
-
-      - uses: mislav/bump-homebrew-formula-action@v1
-        with:
-          formula-path: ${{env.PROJECT_NAME}}.rb
-          homebrew-tap: ${{ env.BREW_TAP }}
-          download-url: "https://github.com/${{ env.REPO_NAME }}/releases/download/${{ steps.extract-version.outputs.tag-name }}/${{env.PROJECT_NAME}}-${{ steps.extract-version.outputs.tag-name }}-x86_64-macos.tar.xz"
-          commit-message: updating formula for ${{ env.PROJECT_NAME }}
-        env:
-          COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
-        #
-        # you can use this initial file in your homebrew-tap if you don't have an initial formula:
-        # <projectname>.rb
-        #
-        # class <Projectname capitalized> < Formula
-        #   desc "A test formula"
-        #   homepage "http://www.example.com"
-        #   url "-----"
-        #   version "-----"
-        #   sha256 "-----"
-
-        #   def install
-        #     bin.install "<bin-name>"
-        #   end
-        # end
-
-      
-      # Uncomment this section if you want to release your package to crates.io
-      # Before publishing, make sure you have filled out the following fields:
-      # license or license-file, description, homepage, documentation, repository, readme.
-      # Read more: https://doc.rust-lang.org/cargo/reference/publishing.html
-
-      # - name: Install ${{ matrix.rust }} toolchain
-      #   uses: actions-rs/toolchain@v1
-      #   with:
-      #     profile: minimal
-      #     toolchain: ${{ matrix.rust }}
-      #     target: ${{ matrix.target }}
-      # - run: cargo publish --token ${CRATES_TOKEN}
-      #  env:
-      #    CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
-
+    - name: Strip release binary (arm)
+      if: matrix.build == 'linux-arm'
+      run: |
+        docker run --rm -v \
+          "$PWD/target:/target:Z" \
+          rustembedded/cross:arm-unknown-linux-gnueabihf \
+          arm-linux-gnueabihf-strip \
+          /target/arm-unknown-linux-gnueabihf/release/rg
+    - name: Build archive
+      shell: bash
+      run: |
+        outdir="$(ci/cargo-out-dir "${{ env.TARGET_DIR }}")"
+        staging="ripgrep-${{ needs.create-release.outputs.rg_version }}-${{ matrix.target }}"
+        mkdir -p "$staging"/{complete,doc}
+        cp {README.md,COPYING,UNLICENSE,LICENSE-MIT} "$staging/"
+        cp {CHANGELOG.md,FAQ.md,GUIDE.md} "$staging/doc/"
+        cp "$outdir"/{rg.bash,rg.fish,_rg.ps1} "$staging/complete/"
+        cp complete/_rg "$staging/complete/"
+        if [ "${{ matrix.os }}" = "windows-2022" ]; then
+          cp "target/${{ matrix.target }}/release/rg.exe" "$staging/"
+          7z a "$staging.zip" "$staging"
+          echo "ASSET=$staging.zip" >> $GITHUB_ENV
+        else
+          # The man page is only generated on Unix systems. ¯\_(ツ)_/¯
+          cp "$outdir"/rg.1 "$staging/doc/"
+          cp "target/${{ matrix.target }}/release/rg" "$staging/"
+          tar czf "$staging.tar.gz" "$staging"
+          echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
+        fi
+    - name: Upload release archive
+      uses: actions/upload-release-asset@v1.0.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ${{ env.ASSET }}
+        asset_name: ${{ env.ASSET }}
+        asset_content_type: application/octet-stream
