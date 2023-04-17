@@ -15,7 +15,6 @@ fn main() -> Result<(), &'static str> {
     })?;
 
     let client = reqwest::blocking::Client::new();
-    let mut headers = HeaderMap::new();
 
     let body = serde_json::to_string(&CompletionBody {
         model: args.model.clone(),
@@ -27,6 +26,7 @@ fn main() -> Result<(), &'static str> {
     })
     .unwrap();
 
+    let mut headers = HeaderMap::new();
     headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
 
     info!("args: {:#?}", args);

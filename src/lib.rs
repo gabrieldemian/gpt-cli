@@ -1,3 +1,4 @@
+/// Documentation of gpt-cli.
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 
