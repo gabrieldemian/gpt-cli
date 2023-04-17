@@ -1,5 +1,4 @@
 use clap::Parser;
-use cli_clipboard;
 use dialoguer::{theme::ColorfulTheme, Select};
 use dotenv::dotenv;
 use gpt_cli::*;
@@ -21,7 +20,7 @@ fn main() -> Result<(), &'static str> {
     let body = serde_json::to_string(&CompletionBody {
         model: args.model.clone(),
         max_tokens: Some(args.tokens.unwrap_or(200)),
-        prompt: "Linux command to ".to_owned() + args.prompt.clone().as_str(),
+        prompt: "Linux command to ".to_owned() + args.prompt.as_str(),
         temperature: Some(0.0),
         stream: Some(false),
         top_p: None,
@@ -51,7 +50,7 @@ fn main() -> Result<(), &'static str> {
 
     println!("\nyour command is:");
     println!("{}", command);
-    print!("\n");
+    println!();
 
     let selections = &["Copy to clipboard", "Cancel"];
     let selection = Select::with_theme(&ColorfulTheme::default())
@@ -61,12 +60,9 @@ fn main() -> Result<(), &'static str> {
         .interact()
         .unwrap();
 
-    match selection {
-        0 => {
-            cli_clipboard::set_contents(command.to_owned()).unwrap();
-        }
-        _ => {}
-    };
+    if selection == 0 {
+        cli_clipboard::set_contents(command.to_owned()).unwrap();
+    }
 
     Ok(())
 }
