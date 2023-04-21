@@ -8,16 +8,16 @@
 
 ## Setup
 
-You need to have the var `OPENAI_API_KEY` exported from your environment. I recommend exporting it on `.zshrc` for zsh shells (or .bashrc for bash). Or you can also create a local .env at the root of the project.
+You need to have the var `OPENAI_KEY` exported from your environment. I recommend exporting it on `.zshrc` for zsh shells (or .bashrc for bash). Or you can also create a local .env at the root of the project.
 
 > Create a .env file containing your key at the root of the project
 
    ```sh
-   echo "export OPENAI_API_KEY=<your key>" > .env
+   echo "export OPENAI_KEY=<your key>" > .env
    ```
 
 ## Usage
-```
+```sh
 gpt-cli [OPTIONS] <PROMPT>
 
 Arguments:
@@ -29,7 +29,7 @@ Options:
   -h, --help             Print help
   -V, --version          Print version
 
-## Example
+Example
 
    gpt-cli "syncronize two folders" -t 100
 ```
