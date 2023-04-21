@@ -33,3 +33,22 @@ Example
 
    gpt-cli "syncronize two folders" -t 100
 ```
+
+## Installation
+The binary name is called `gpt`. In the future, the binaries will be added to the Arch Linux package manager, pacman. For now, you can download the compiled binaries on the [releases page](https://github.com/gabrieldemian/gpt-cli/releases), or build it from source.
+
+### Building from source
+gpt-cli is written in Rust, so you'll need to have a Rust installation in order to compile it.
+
+To build gpt-cli:
+```sh
+$ git clone git@github.com:gabrieldemian/gpt-cli.git
+$ cd gpt-cli
+$ cargo build --release
+$ ./target/release/gpt --help
+```
+
+Copy the binary to a PATH folder:
+```sh
+$ sudo cp ./target/release/gpt /usr/bin/gpt
+```
