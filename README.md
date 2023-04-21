@@ -34,3 +34,4 @@ Options:
    ```sh
    gpt-cli "syncronize two folders" -t 100
    ```
+```
