@@ -3,7 +3,6 @@ use dialoguer::{theme::ColorfulTheme, Select};
 use dotenv::dotenv;
 use gpt_cli::*;
 use log::info;
-use reqwest::header::{HeaderMap, CONTENT_TYPE};
 
 fn main() -> Result<(), &'static str> {
     dotenv().ok();
@@ -16,32 +15,27 @@ fn main() -> Result<(), &'static str> {
 
     let client = reqwest::blocking::Client::new();
 
-    let body = serde_json::to_string(&CompletionBody {
+    let body = CompletionBody {
         model: args.model.clone(),
         max_tokens: Some(args.tokens.unwrap_or(200)),
         prompt: "Linux command to ".to_owned() + args.prompt.as_str(),
         temperature: Some(0.0),
         stream: Some(false),
         top_p: None,
-    })
-    .unwrap();
-
-    let mut headers = HeaderMap::new();
-    headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
+    };
 
     info!("args: {:#?}", args);
 
     let r = client
         .post("https://api.openai.com/v1/completions")
-        .headers(headers)
-        .body(body)
+        .json(&body)
         .bearer_auth(key)
         .send()
         .unwrap();
 
     info!("status {}", r.status());
 
-    let body: CompletionResp = serde_json::from_str(r.text().unwrap().as_str()).unwrap();
+    let body: CompletionResp = r.json().unwrap();
 
     info!("body: {:#?}", body);
 
