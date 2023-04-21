@@ -1,15 +1,16 @@
+use anyhow::{Context, Result};
 use clap::Parser;
 use dialoguer::{theme::ColorfulTheme, Select};
 use dotenv::dotenv;
 use gpt_cli::*;
 use log::info;
 
-fn main() -> Result<(), &'static str> {
+fn main() -> Result<()> {
     dotenv().ok();
     pretty_env_logger::init();
     let args = Args::parse();
 
-    let key = std::env::var("OPENAI_API_KEY").map_err(|_| {
+    let key = std::env::var("OPENAI_API_KEY").with_context(|| {
         "❗OpenAI key not found. You need to export OPEN_API_KEY on .bashrc or .zshrc"
     })?;
 
@@ -35,7 +36,10 @@ fn main() -> Result<(), &'static str> {
 
     info!("status {}", r.status());
 
-    let body: CompletionResp = r.json().unwrap();
+    let status = r.status();
+    let body: CompletionResp = r
+        .json()
+        .with_context(|| format!("Request to ChatGPT server failed with status code {status}"))?;
 
     info!("body: {:#?}", body);
 
@@ -51,8 +55,7 @@ fn main() -> Result<(), &'static str> {
         .with_prompt("What now?")
         .default(0)
         .items(&selections[..])
-        .interact()
-        .unwrap();
+        .interact()?;
 
     if selection == 0 {
         cli_clipboard::set_contents(command.to_owned()).unwrap();
