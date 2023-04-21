@@ -10,8 +10,8 @@ fn main() -> Result<()> {
     pretty_env_logger::init();
     let args = Args::parse();
 
-    let key = std::env::var("OPENAI_API_KEY").with_context(|| {
-        "❗OpenAI key not found. You need to export OPEN_API_KEY on .bashrc or .zshrc"
+    let key = std::env::var("OPENAI_KEY").with_context(|| {
+        "❗OpenAI key not found. You need to export OPENAI_KEY on .bashrc or .zshrc"
     })?;
 
     let client = reqwest::blocking::Client::new();
@@ -19,7 +19,9 @@ fn main() -> Result<()> {
     let body = CompletionBody {
         model: args.model.clone(),
         max_tokens: Some(args.tokens.unwrap_or(200)),
-        prompt: "Linux command to ".to_owned() + args.prompt.as_str(),
+        prompt: "Linux command to ".to_owned()
+            + args.prompt.as_str()
+            + ". Answer with the full command.",
         temperature: Some(0.0),
         stream: Some(false),
         top_p: None,
